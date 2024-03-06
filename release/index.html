@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script>
+        /*
+Source code created by Rustici Software, LLC is licensed under a
+Creative Commons Attribution 3.0 United States License
+(http://creativecommons.org/licenses/by/3.0/us/)
+
+Want to make SCORM easy? See our solutions at http://www.scorm.com.
+
+This example demonstrates the use of more advanced runtime calls in a multi-page SCO. It
+includes a demonstration of reporting interactions (question results), and progress
+towards specific learning objective. It also demonstrates using the manifest to specify
+a passing score rather than hard coding the passing score within the content.
+*/
+
+
+        //Include the standard ADL-supplied API discovery algorithm
+
+
+        ///////////////////////////////////////////
+        //Begin ADL-provided API discovery algorithm
+        ///////////////////////////////////////////
+
+        var nFindAPITries = 0;
+        var API = null;
+        var maxTries = 500;
+        // The ScanForAPI() function searches for an object named API_1484_11
+        // in the window that is passed into the function.  If the object is
+        // found a reference to the object is returned to the calling function.
+        // If the instance is found the SCO now has a handle to the LMS
+        // provided API Instance.  The function searches a maximum number
+        // of parents of the current window.  If no object is found the
+        // function returns a null reference.  This function also reassigns a
+        // value to the win parameter passed in, based on the number of
+        // parents.  At the end of the function call, the win variable will be
+        // set to the upper most parent in the chain of parents.
+        function ScanForAPI(win)
+        {
+            while ((win.API_1484_11 == null) && (win.parent != null)
+            && (win.parent != win))
+            {
+                nFindAPITries++;
+                if (nFindAPITries > maxTries)
+                {
+                    return null;
+                }
+                win = win.parent;
+            }
+            return win.API_1484_11;
+        }
+
+        // The GetAPI() function begins the process of searching for the LMS
+        // provided API Instance.  The function takes in a parameter that
+        // represents the current window.  The function is built to search in a
+        // specific order and stop when the LMS provided API Instance is found.
+        // The function begins by searching the current window�s parent, if the
+        // current window has a parent.  If the API Instance is not found, the
+        // function then checks to see if there are any opener windows.  If
+        // the window has an opener, the function begins to look for the
+        // API Instance in the opener window.
+        function GetAPI(win)
+        {
+            if ((win.parent != null) && (win.parent != win))
+            {
+                API = ScanForAPI(win.parent);
+            }
+            if ((API == null) && (win.opener != null))
+            {
+                API = ScanForAPI(win.opener);
+            }
+        }
+
+        ///////////////////////////////////////////
+        //End ADL-provided API discovery algorithm
+        ///////////////////////////////////////////
+
+
+        //Create function handlers for the loading and unloading of the page
+
+        //Constants
+        var SCORM_TRUE = "true";
+        var SCORM_FALSE = "false";
+        var SCORM_NO_ERROR = "0";
+
+        //Since the Unload handler will be called twice, from both the onunload
+        //and onbeforeunload events, ensure that we only call Terminate once.
+        var terminateCalled = false;
+
+        //Track whether or not we successfully initialized.
+        var initialized = false;
+
+        function ScormProcessInitialize(){
+            var result;
+
+            GetAPI(window);
+
+            if (API == null){
+                alert("ERROR - Could not establish a connection with the LMS.\n\nYour results may not be recorded.");
+                return;
+            }
+
+            result = API.Initialize("");
+
+            if (result == SCORM_FALSE){
+                var errorNumber = API.GetLastError();
+                var errorString = API.GetErrorString(errorNumber);
+                var diagnostic = API.GetDiagnostic(errorNumber);
+
+                var errorDescription = "Number: " + errorNumber + "\nDescription: " + errorString + "\nDiagnostic: " + diagnostic;
+
+                alert("Error - Could not initialize communication with the LMS.\n\nYour results may not be recorded.\n\n" + errorDescription);
+                return;
+            }
+
+            initialized = true;
+        }
+
+        function ScormProcessTerminate(){
+
+            var result;
+
+            //Don't terminate if we haven't initialized or if we've already terminated
+            if (initialized == false || terminateCalled == true){return;}
+
+            result = API.Terminate("");
+
+            terminateCalled = true;
+
+            if (result == SCORM_FALSE){
+                var errorNumber = API.GetLastError();
+                var errorString = API.GetErrorString(errorNumber);
+                var diagnostic = API.GetDiagnostic(errorNumber);
+
+                var errorDescription = "Number: " + errorNumber + "\nDescription: " + errorString + "\nDiagnostic: " + diagnostic;
+
+                alert("Error - Could not terminate communication with the LMS.\n\nYour results may not be recorded.\n\n" + errorDescription);
+                return;
+            }
+        }
+
+
+        /*
+        The onload and onunload event handlers are assigned in launchpage.html because more processing needs to
+        occur at these times in this example.
+        */
+        //window.onload = ScormProcessInitialize;
+        //window.onunload = ScormProcessTerminate;
+        //window.onbeforeunload = ScormProcessTerminate;
+
+        //There are situations where a GetValue call is expected to have an error
+        //and should not alert the user.
+        function ScormProcessGetValue(element, checkError){
+            var result;
+
+            if (initialized == false || terminateCalled == true){return;}
+
+            result = API.GetValue(element);
+
+            if (checkError == true && result == ""){
+
+                var errorNumber = API.GetLastError();
+
+                if (errorNumber != SCORM_NO_ERROR){
+                    var errorString = API.GetErrorString(errorNumber);
+                    var diagnostic = API.GetDiagnostic(errorNumber);
+
+                    var errorDescription = "Number: " + errorNumber + "\nDescription: " + errorString + "\nDiagnostic: " + diagnostic;
+
+                    alert("Error - Could not retrieve a value from the LMS.\n\n" + errorDescription);
+                    return "";
+                }
+            }
+
+            return result;
+        }
+
+        function ScormProcessSetValue(element, value){
+            var result;
+
+            if (initialized == false || terminateCalled == true){return;}
+
+            result = API.SetValue(element, value);
+
+            if (result == SCORM_FALSE){
+                var errorNumber = API.GetLastError();
+                var errorString = API.GetErrorString(errorNumber);
+                var diagnostic = API.GetDiagnostic(errorNumber);
+
+                var errorDescription = "Number: " + errorNumber + "\nDescription: " + errorString + "\nDiagnostic: " + diagnostic;
+
+                alert("Error - Could not store a value in the LMS.\n\nYour results may not be recorded.\n\n" + errorDescription);
+                return;
+            }
+
+            return result;
+        }
+    </script>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no">
+    <title>Scormplugin</title>
+    <style>
+        body {
+            touch-action: none;
+            margin: 0;
+            border: 0 none;
+            padding: 0;
+            text-align: center;
+            background-color: black;
+        }
+
+        #canvas {
+            display: block;
+            margin: 0;
+            color: white;
+        }
+
+        #canvas:focus {
+            outline: none;
+        }
+
+        .godot {
+            font-family: 'Noto Sans', 'Droid Sans', Arial, sans-serif;
+            color: #e0e0e0;
+            background-color: #3b3943;
+            background-image: linear-gradient(to bottom, #403e48, #35333c);
+            border: 1px solid #45434e;
+            box-shadow: 0 0 1px 1px #2f2d35;
+        }
+
+        /* Status display */
+
+        #status {
+            position: absolute;
+            left: 0;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            /* don't consume click events - make children visible explicitly */
+            visibility: hidden;
+        }
+
+        #status-progress {
+            width: 366px;
+            height: 7px;
+            background-color: #38363A;
+            border: 1px solid #444246;
+            padding: 1px;
+            box-shadow: 0 0 2px 1px #1B1C22;
+            border-radius: 2px;
+            visibility: visible;
+        }
+
+        @media only screen and (orientation:portrait) {
+            #status-progress {
+                width: 61.8%;
+            }
+        }
+
+        #status-progress-inner {
+            height: 100%;
+            width: 0;
+            box-sizing: border-box;
+            transition: width 0.5s linear;
+            background-color: #202020;
+            border: 1px solid #222223;
+            box-shadow: 0 0 1px 1px #27282E;
+            border-radius: 3px;
+        }
+
+        #status-indeterminate {
+            height: 42px;
+            visibility: visible;
+            position: relative;
+        }
+
+        #status-indeterminate > div {
+            width: 4.5px;
+            height: 0;
+            border-style: solid;
+            border-width: 9px 3px 0 3px;
+            border-color: #2b2b2b transparent transparent transparent;
+            transform-origin: center 21px;
+            position: absolute;
+        }
+
+        #status-indeterminate > div:nth-child(1) { transform: rotate( 22.5deg); }
+        #status-indeterminate > div:nth-child(2) { transform: rotate( 67.5deg); }
+        #status-indeterminate > div:nth-child(3) { transform: rotate(112.5deg); }
+        #status-indeterminate > div:nth-child(4) { transform: rotate(157.5deg); }
+        #status-indeterminate > div:nth-child(5) { transform: rotate(202.5deg); }
+        #status-indeterminate > div:nth-child(6) { transform: rotate(247.5deg); }
+        #status-indeterminate > div:nth-child(7) { transform: rotate(292.5deg); }
+        #status-indeterminate > div:nth-child(8) { transform: rotate(337.5deg); }
+
+        #status-notice {
+            margin: 0 100px;
+            line-height: 1.3;
+            visibility: visible;
+            padding: 4px 6px;
+            visibility: visible;
+        }
+    </style>
+    <link id='-gd-engine-icon' rel='icon' type='image/png' href='index.icon.png' />
+<link rel='apple-touch-icon' href='index.apple-touch-icon.png'/>
+
+    <script type="text/javascript">
+        function doStart(){
+
+            //initialize communication with the LMS
+            ScormProcessInitialize();
+
+            //it's a best practice to set the completion status to incomplete when
+            //first launching the course (if the course is not already completed)
+            var completionStatus = ScormProcessGetValue("cmi.completion_status", true);
+            if (completionStatus == "unknown"){
+                ScormProcessSetValue("cmi.completion_status", "incomplete");
+            }
+        }
+
+        function doUnload(pressedExit){
+
+            //don't call this function twice
+            if (processedUnload == true){return;}
+
+            processedUnload = true;
+
+            //record the session time
+            var endTimeStamp = new Date();
+            var totalMilliseconds = (endTimeStamp.getTime() - startTimeStamp.getTime());
+            var scormTime = ConvertMilliSecondsIntoSCORM2004Time(totalMilliseconds);
+
+            ScormProcessSetValue("cmi.session_time", scormTime);
+
+            //if the user just closes the browser, we will default to saving
+            //their progress data. If the user presses exit, he is prompted.
+            //If the user reached the end, the exit normall to submit results.
+            if (pressedExit == false && reachedEnd == false){
+                ScormProcessSetValue("cmi.exit", "suspend");
+            }
+
+            ScormProcessTerminate();
+        }
+
+        //SCORM requires time to be formatted in a specific way
+        function ConvertMilliSecondsIntoSCORM2004Time(intTotalMilliseconds){
+
+            var ScormTime = "";
+
+            var HundredthsOfASecond;	//decrementing counter - work at the hundreths of a second level because that is all the precision that is required
+
+            var Seconds;	// 100 hundreths of a seconds
+            var Minutes;	// 60 seconds
+            var Hours;		// 60 minutes
+            var Days;		// 24 hours
+            var Months;		// assumed to be an "average" month (figures a leap year every 4 years) = ((365*4) + 1) / 48 days - 30.4375 days per month
+            var Years;		// assumed to be 12 "average" months
+
+            var HUNDREDTHS_PER_SECOND = 100;
+            var HUNDREDTHS_PER_MINUTE = HUNDREDTHS_PER_SECOND * 60;
+            var HUNDREDTHS_PER_HOUR   = HUNDREDTHS_PER_MINUTE * 60;
+            var HUNDREDTHS_PER_DAY    = HUNDREDTHS_PER_HOUR * 24;
+            var HUNDREDTHS_PER_MONTH  = HUNDREDTHS_PER_DAY * (((365 * 4) + 1) / 48);
+            var HUNDREDTHS_PER_YEAR   = HUNDREDTHS_PER_MONTH * 12;
+
+            HundredthsOfASecond = Math.floor(intTotalMilliseconds / 10);
+
+            Years = Math.floor(HundredthsOfASecond / HUNDREDTHS_PER_YEAR);
+            HundredthsOfASecond -= (Years * HUNDREDTHS_PER_YEAR);
+
+            Months = Math.floor(HundredthsOfASecond / HUNDREDTHS_PER_MONTH);
+            HundredthsOfASecond -= (Months * HUNDREDTHS_PER_MONTH);
+
+            Days = Math.floor(HundredthsOfASecond / HUNDREDTHS_PER_DAY);
+            HundredthsOfASecond -= (Days * HUNDREDTHS_PER_DAY);
+
+            Hours = Math.floor(HundredthsOfASecond / HUNDREDTHS_PER_HOUR);
+            HundredthsOfASecond -= (Hours * HUNDREDTHS_PER_HOUR);
+
+            Minutes = Math.floor(HundredthsOfASecond / HUNDREDTHS_PER_MINUTE);
+            HundredthsOfASecond -= (Minutes * HUNDREDTHS_PER_MINUTE);
+
+            Seconds = Math.floor(HundredthsOfASecond / HUNDREDTHS_PER_SECOND);
+            HundredthsOfASecond -= (Seconds * HUNDREDTHS_PER_SECOND);
+
+            if (Years > 0) {
+                ScormTime += Years + "Y";
+            }
+            if (Months > 0){
+                ScormTime += Months + "M";
+            }
+            if (Days > 0){
+                ScormTime += Days + "D";
+            }
+
+            //check to see if we have any time before adding the "T"
+            if ((HundredthsOfASecond + Seconds + Minutes + Hours) > 0 ){
+
+                ScormTime += "T";
+
+                if (Hours > 0){
+                    ScormTime += Hours + "H";
+                }
+
+                if (Minutes > 0){
+                    ScormTime += Minutes + "M";
+                }
+
+                if ((HundredthsOfASecond + Seconds) > 0){
+                    ScormTime += Seconds;
+
+                    if (HundredthsOfASecond > 0){
+                        ScormTime += "." + HundredthsOfASecond;
+                    }
+
+                    ScormTime += "S";
+                }
+
+            }
+
+            if (ScormTime == ""){
+                ScormTime = "0S";
+            }
+
+            ScormTime = "P" + ScormTime;
+
+            return ScormTime;
+        }
+    </script>
+</head>
+<body onload="doStart(false);" onbeforeunload="doUnload(false);" onunload="doUnload();">
+<canvas id="canvas">
+    HTML5 canvas appears to be unsupported in the current browser.<br >
+    Please try updating or use a different browser.
+</canvas>
+<div id="status">
+    <div id="status-progress" style="display: none;" oncontextmenu="event.preventDefault();">
+        <div id ="status-progress-inner"></div>
+    </div>
+    <div id="status-indeterminate" style="display: none;" oncontextmenu="event.preventDefault();">
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+    </div>
+    <div id="status-notice" class="godot" style="display: none;"></div>
+</div>
+
+<script src="index.js"></script>
+<script>
+    const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":14976,"index.wasm":35649444},"focusCanvas":true,"gdextensionLibs":[]};
+    const engine = new Engine(GODOT_CONFIG);
+
+    (function () {
+        const INDETERMINATE_STATUS_STEP_MS = 100;
+        const statusProgress = document.getElementById('status-progress');
+        const statusProgressInner = document.getElementById('status-progress-inner');
+        const statusIndeterminate = document.getElementById('status-indeterminate');
+        const statusNotice = document.getElementById('status-notice');
+
+        let initializing = true;
+        let statusMode = 'hidden';
+
+        let animationCallbacks = [];
+        function animate(time) {
+            animationCallbacks.forEach((callback) => callback(time));
+            requestAnimationFrame(animate);
+        }
+        requestAnimationFrame(animate);
+
+        function animateStatusIndeterminate(ms) {
+            const i = Math.floor((ms / INDETERMINATE_STATUS_STEP_MS) % 8);
+            if (statusIndeterminate.children[i].style.borderTopColor === '') {
+                Array.prototype.slice.call(statusIndeterminate.children).forEach((child) => {
+                    child.style.borderTopColor = '';
+                });
+                statusIndeterminate.children[i].style.borderTopColor = '#dfdfdf';
+            }
+        }
+
+        function setStatusMode(mode) {
+            if (statusMode === mode || !initializing) {
+                return;
+            }
+            [statusProgress, statusIndeterminate, statusNotice].forEach((elem) => {
+                elem.style.display = 'none';
+            });
+            animationCallbacks = animationCallbacks.filter(function (value) {
+                return (value !== animateStatusIndeterminate);
+            });
+            switch (mode) {
+                case 'progress':
+                    statusProgress.style.display = 'block';
+                    break;
+                case 'indeterminate':
+                    statusIndeterminate.style.display = 'block';
+                    animationCallbacks.push(animateStatusIndeterminate);
+                    break;
+                case 'notice':
+                    statusNotice.style.display = 'block';
+                    break;
+                case 'hidden':
+                    break;
+                default:
+                    throw new Error('Invalid status mode');
+            }
+            statusMode = mode;
+        }
+
+        function setStatusNotice(text) {
+            while (statusNotice.lastChild) {
+                statusNotice.removeChild(statusNotice.lastChild);
+            }
+            const lines = text.split('\n');
+            lines.forEach((line) => {
+                statusNotice.appendChild(document.createTextNode(line));
+                statusNotice.appendChild(document.createElement('br'));
+            });
+        }
+
+        function displayFailureNotice(err) {
+            const msg = err.message || err;
+            console.error(msg);
+            setStatusNotice(msg);
+            setStatusMode('notice');
+            initializing = false;
+        }
+
+        const missing = Engine.getMissingFeatures();
+        if (missing.length !== 0) {
+            const missingMsg = 'Error\nThe following features required to run Godot projects on the Web are missing:\n';
+            displayFailureNotice(missingMsg + missing.join('\n'));
+        } else {
+            setStatusMode('indeterminate');
+            engine.startGame({
+                'onProgress': function (current, total) {
+                    if (total > 0) {
+                        statusProgressInner.style.width = `${(current / total) * 100}%`;
+                        setStatusMode('progress');
+                        if (current === total) {
+                            // wait for progress bar animation
+                            setTimeout(() => {
+                                setStatusMode('indeterminate');
+                            }, 500);
+                        }
+                    } else {
+                        setStatusMode('indeterminate');
+                    }
+                },
+            }).then(() => {
+                setStatusMode('hidden');
+                initializing = false;
+            }, displayFailureNotice);
+        }
+    }());
+</script>
+</body>
+</html>

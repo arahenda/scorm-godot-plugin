@@ -1,0 +1,163 @@
+[gd_scene load_steps=3 format=3 uid="uid://byeu5ws03cs0"]
+
+[ext_resource type="Script" path="res://addons/scorm/scorm_node.gd" id="1_ab3se"]
+[ext_resource type="Script" path="res://TestScorm.gd" id="1_j82b1"]
+
+[node name="TestScorm" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_j82b1")
+
+[node name="ScormNode" type="Node" parent="."]
+script = ExtResource("1_ab3se")
+
+[node name="CheckButton" type="CheckButton" parent="."]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -107.5
+offset_top = 64.0
+offset_right = 107.5
+offset_bottom = 95.0
+grow_horizontal = 2
+text = "Auto Refresh on Send"
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -252.0
+offset_top = -142.5
+offset_right = 252.0
+offset_bottom = -41.5
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBoxContainer/HBoxContainer"]
+layout_mode = 2
+text = "Score:"
+
+[node name="Score" type="SpinBox" parent="VBoxContainer/HBoxContainer"]
+layout_mode = 2
+
+[node name="ScoreButton" type="Button" parent="VBoxContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+text = "Send
+"
+
+[node name="VSeparator" type="VSeparator" parent="VBoxContainer/HBoxContainer"]
+custom_minimum_size = Vector2(127, 0)
+layout_mode = 2
+
+[node name="ResultLabel" type="Label" parent="VBoxContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Current:"
+
+[node name="Result" type="Label" parent="VBoxContainer/HBoxContainer"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+
+[node name="Button" type="Button" parent="VBoxContainer/HBoxContainer"]
+layout_mode = 2
+text = "Refresh"
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
+
+[node name="PassButton" type="CheckButton" parent="VBoxContainer/HBoxContainer2"]
+layout_mode = 2
+text = "Pass:"
+
+[node name="VSeparator" type="VSeparator" parent="VBoxContainer/HBoxContainer2"]
+custom_minimum_size = Vector2(225, 0)
+layout_mode = 2
+
+[node name="ResultLabel" type="Label" parent="VBoxContainer/HBoxContainer2"]
+layout_mode = 2
+text = "Current:"
+
+[node name="Result" type="Label" parent="VBoxContainer/HBoxContainer2"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+
+[node name="Button" type="Button" parent="VBoxContainer/HBoxContainer2"]
+layout_mode = 2
+text = "Refresh"
+
+[node name="HBoxContainer3" type="HBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/HBoxContainer3"]
+layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer/HBoxContainer3/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBoxContainer/HBoxContainer3/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+text = "Custom Prop:"
+
+[node name="TextEdit" type="TextEdit" parent="VBoxContainer/HBoxContainer3/VBoxContainer/HBoxContainer"]
+custom_minimum_size = Vector2(200, 30)
+layout_mode = 2
+placeholder_text = "cmi.attribute"
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="VBoxContainer/HBoxContainer3/VBoxContainer"]
+layout_mode = 2
+
+[node name="LabelValue" type="Label" parent="VBoxContainer/HBoxContainer3/VBoxContainer/HBoxContainer2"]
+layout_mode = 2
+text = "Value:"
+
+[node name="TextValue" type="TextEdit" parent="VBoxContainer/HBoxContainer3/VBoxContainer/HBoxContainer2"]
+custom_minimum_size = Vector2(60, 30)
+layout_mode = 2
+placeholder_text = "value"
+
+[node name="CenterContainer" type="CenterContainer" parent="VBoxContainer/HBoxContainer3/VBoxContainer/HBoxContainer2"]
+custom_minimum_size = Vector2(187, 0)
+layout_mode = 2
+
+[node name="SentButton" type="Button" parent="VBoxContainer/HBoxContainer3/VBoxContainer/HBoxContainer2/CenterContainer"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+size_flags_vertical = 4
+text = "Submit"
+
+[node name="VSeparator" type="VSeparator" parent="VBoxContainer/HBoxContainer3"]
+layout_mode = 2
+
+[node name="ResultLabel" type="Label" parent="VBoxContainer/HBoxContainer3"]
+layout_mode = 2
+text = "Current:"
+
+[node name="Result" type="Label" parent="VBoxContainer/HBoxContainer3"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+
+[node name="Button" type="Button" parent="VBoxContainer/HBoxContainer3"]
+layout_mode = 2
+text = "Refresh"
+
+[connection signal="getScormValue" from="ScormNode" to="." method="_on_scorm_node_get_scorm_value"]
+[connection signal="toggled" from="CheckButton" to="." method="_on_check_button_toggled"]
+[connection signal="pressed" from="VBoxContainer/HBoxContainer/ScoreButton" to="." method="_on_score_button_pressed"]
+[connection signal="pressed" from="VBoxContainer/HBoxContainer/Button" to="." method="_on_button_pressed"]
+[connection signal="toggled" from="VBoxContainer/HBoxContainer2/PassButton" to="." method="_on_pass_button_toggled"]
+[connection signal="pressed" from="VBoxContainer/HBoxContainer2/Button" to="." method="_on_button_pass_pressed"]
+[connection signal="pressed" from="VBoxContainer/HBoxContainer3/VBoxContainer/HBoxContainer2/CenterContainer/SentButton" to="." method="_on_sent_button_pressed"]
+[connection signal="pressed" from="VBoxContainer/HBoxContainer3/Button" to="." method="_on_button_cusrt_pressed"]
