@@ -12,6 +12,6 @@
 </organization>
 </organizations>
 <resources>
-<resource identifier="resource_1" type="webcontent" adlcp:scormType="sco" href="index.html"><file href="TestScorm.gd"/><file href="TestScorm.tscn"/><file href="export_presets.cfg"/><file href="icon.svg"/><file href="icon.svg.import"/><file href="imsmanifest.xml"/><file href="imsmanifest.xml-iyNmO3"/><file href="project.godot"/></resource>
+<resource identifier="resource_1" type="webcontent" adlcp:scormType="sco" href="release/index.html"><file href="TestScorm.gd"/><file href="TestScorm.tscn"/><file href="export_presets.cfg"/><file href="icon.svg"/><file href="icon.svg.import"/><file href="imsmanifest.xml"/><file href="imsmanifest.xml-tvIA9n"/><file href="project.godot"/></resource>
 		</resources>
 		</manifest>

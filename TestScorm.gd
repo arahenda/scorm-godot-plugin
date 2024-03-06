@@ -17,7 +17,7 @@ func _on_check_button_toggled(value):
 
 
 func _on_score_button_pressed():
-	$ScormNode._setScormValue("cmi.score.scaled",$VBoxContainer/HBoxContainer/Score.value)
+	$ScormNode._setScormValue("cmi.score.scaled",$VBoxContainer/HBoxContainer/Score.value/100)
 
 
 

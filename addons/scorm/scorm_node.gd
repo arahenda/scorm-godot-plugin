@@ -9,8 +9,8 @@ func _ready():
 	setScormValue.connect(_setScormValue)
 
 func _setScormValue(attribute,value):
-	JavaScriptBridge.eval("ScormProcessSetValue('"+attribute+"', '"+value+"')");
-	var return_val = JavaScriptBridge.eval("ScormProcessGetValue('"+attribute+"');")
+	JavaScriptBridge.eval("ScormProcessSetValue('"+attribute+"', '"+str(value)+"')");
+	var return_val = str(JavaScriptBridge.eval("ScormProcessGetValue('"+attribute+"');"))
 	if(emmit_return_on_set):
 		getScormValue.emit(attribute,return_val)
 	attributes[attribute] = return_val
@@ -21,7 +21,9 @@ func _getScormValue(attribute):
 	if(attributes.has(attribute)):
 		return_val = attributes[attribute]
 	else:
-		return_val = JavaScriptBridge.eval("ScormProcessGetValue('"+attribute+"');")
+		return_val = str(JavaScriptBridge.eval("ScormProcessGetValue('"+attribute+"');"))
 		attributes[attribute] = return_val
+	if(!return_val):
+		return_val = "null"
 	getScormValue.emit(attribute,return_val)
 	return return_val
