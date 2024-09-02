@@ -226,6 +226,7 @@ function ScormProcessSetValue(element, value) {
 
 ///////////////////////////////////////////
 // Begin Godot Scorm plugin code
+// Licensed under the MIT license (see LICENSE)
 ///////////////////////////////////////////
 var startTimeStamp = new Date();
 var processedUnload = false;
