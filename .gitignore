@@ -1,2 +1,14 @@
+# Godot 4+ specific ignores
 .godot/
+android/
 *.translation
+
+# Godot-specific ignores
+.import/
+
+# Build dirs
+[rR]elease/
+[bB]uild/
+
+# Temp files
+~*
