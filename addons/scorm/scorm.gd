@@ -2,53 +2,64 @@ extends Node
 
 signal attribute_updated(atribute: Attributes, value: Variant)
 
+# Enables debug messages.
 @export var verbose_mode: bool = false
 
+
+# Represents the student score in the current SCO attempt.
 enum Attributes {
-	SCORE_SCALED,	# float [-1, 1]
-	COMPLETION_STATUS,	# enum CompletionStatus
-	SUCCESS_STATUS,	# enum SuccessStatus
-	SESSION_TIME, # float seconds
+	SCORE,	# int 0-100
+	SCORE_MAX, # int 0
+	SCORE_MIN, # int 100
+	LESSON_STATUS,	# enum LessonStatus (1.2 name, in 2004 it's 'completion_status')
+	#SESSION_TIME,	# Write only, managed at scorm.js
+	# SUCCESS_STATUS,	# enum SuccessStatus (scorm 2004)
 }
 
-# See: https://scorm.com/scorm-explained/technical-scorm/run-time/run-time-reference/#section-5
+# See SCORM 1.2 reference: https://scorm.com/scorm-explained/technical-scorm/run-time/run-time-reference/#section-2
 const ATTRIBUTES_TXT = {
-	Attributes.SCORE_SCALED: "cmi.score.scaled",
-	Attributes.COMPLETION_STATUS: "cmi.completion_status",
-	Attributes.SUCCESS_STATUS: "cmi.success_status",
-	Attributes.SESSION_TIME: "cmi.session_time",
+	Attributes.SCORE: "cmi.core.score.raw",
+	Attributes.SCORE_MAX: "cmi.core.score.max",
+	Attributes.SCORE_MIN: "cmi.core.score.min",
+	Attributes.LESSON_STATUS: "cmi.core.lesson_status",
+	# Attributes.SUCCESS_STATUS: "cmi.success_status",
+	#Attributes.SESSION_TIME: "cmi.core.session_time",
 }
 
 # Finished info
-enum CompletionStatus {
-	COMPLETED,
-	INCOMPLETE,
+enum LessonStatus {
 	NOT_ATTEMPTED,
-	UNKNOWN,
+	INCOMPLETE,
+	COMPLETED,
+	PASSED, # 1.2
+	FAILED, # 1.2
+	# UNKNOWN, # 2004
 }
 
-const COMPLETION_STATUS_TXT = {
-	CompletionStatus.COMPLETED: "completed",
-	CompletionStatus.INCOMPLETE: "incomplete",
-	CompletionStatus.NOT_ATTEMPTED: "not attempted",
-	CompletionStatus.UNKNOWN: "unknown",
+const LESSON_STATUS_TXT = {
+	LessonStatus.NOT_ATTEMPTED: "not attempted",
+	LessonStatus.INCOMPLETE: "incomplete",
+	LessonStatus.COMPLETED: "completed",
+	LessonStatus.PASSED: "passed",
+	LessonStatus.FAILED: "failed",
+	# LessonStatus.UNKNOWN: "unknown",
 }
 
 # Success info
-enum SuccessStatus {
-	PASSED,
-	FAILED,
-	UNKNOWN,
-}
+# enum SuccessStatus {	# 2004
+# 	PASSED,
+# 	FAILED,
+# 	UNKNOWN,
+# }
 
-const SUCCESS_STATUS_TXT = {
-	SuccessStatus.PASSED: "passed",
-	SuccessStatus.FAILED: "failed",
-	SuccessStatus.UNKNOWN: "unknown",
-}
+# const SUCCESS_STATUS_TXT = {
+# 	SuccessStatus.PASSED: "passed",
+# 	SuccessStatus.FAILED: "failed",
+# 	SuccessStatus.UNKNOWN: "unknown",
+# }
 
-var TXT2COMPLETION_STATUS := {}
-var TXT2SUCCESS_STATUS := {}
+var TXT2LESSON_STATUS := {}
+# var TXT2SUCCESS_STATUS := {}
 
 # key: attribute | value: DME
 var dme_lookup = {}
@@ -63,8 +74,8 @@ class DME:
 	func _init(attr: Attributes, val: Variant):
 		self.id = Scorm._id_next()
 		self.attr = attr
-		self.val = val
-		if (!_check()):
+		#self.val = val
+		if (!_set_safe(val)):
 			push_error("Not possible to create DME ('%s', '%s')" % [attr, val])
 			self.attr = -1
 			self.val = null
@@ -79,34 +90,41 @@ class DME:
 	func get_value_ext() -> Variant: return self.val_ext
 
 	func set_value(nval) -> void:
-		self.val = nval
-		_check()
+		_set_safe(nval)
+		#self.val = nval
 
-	func _check() -> Variant:
-		Scorm._logv("> dme_check() '%s' '%s'" % [attr, val])
+	func _set_safe(val: Variant) -> Variant:
+		Scorm._logv("> dme_set_safe() '%s' '%s'" % [attr, val])
 		match(self.attr):
-			Scorm.Attributes.SCORE_SCALED:
-				if -1 > self.val or 1 < self.val:
-					push_error("Score needs to be in [-1,1] range.")
+			Scorm.Attributes.SCORE,\
+			Scorm.Attributes.SCORE_MAX,\
+			Scorm.Attributes.SCORE_MIN:
+				val = int(val)
+				if 0 > val or 100 < val:
+					push_error("Score needs to be in [0,100] range.")
 					return false
-				self.val = float(val)
-				self.val_ext = self.val
-			Scorm.Attributes.SESSION_TIME:
-				if 0 > self.val:
-					push_error("Session time must be greater than 0.")
+				self.val_ext = val
+				self.val = val
+				#self.val_ext = self.val
+			#Scorm.Attributes.SESSION_TIME:
+				#if 0 > val:
+					#push_error("Session time must be greater than 0.")
+					#return false
+				## self.val = float(val)
+				#self.val_ext = self.val
+			Scorm.Attributes.LESSON_STATUS:
+				Scorm._logv("%s" % Scorm.LessonStatus.values())
+				if not val in Scorm.LessonStatus.values():
+					push_error("Value isn't a valid LESSON_STATUS.")
 					return false
-				self.val = float(val)
-				self.val_ext = self.val
-			Scorm.Attributes.COMPLETION_STATUS:
-				if not self.val in Scorm.CompletionStatus.values():
-					push_error("Value isn't a valid COMPLETION_STATUS.")
-					return false
-				self.val_ext = COMPLETION_STATUS_TXT[self.val]
-			Scorm.Attributes.SUCCESS_STATUS:
-				if not self.val in Scorm.SuccessStatus.values():
-					push_error("Value isn't a valid SUCCESS_STATUS.")
-					return false
-				self.val_ext = SUCCESS_STATUS_TXT[self.val]
+				self.val_ext = LESSON_STATUS_TXT[val]
+				self.val = val
+				#self.val_ext = LESSON_STATUS_TXT[self.val]
+			# Scorm.Attributes.SUCCESS_STATUS:
+			# 	if not self.val in Scorm.SuccessStatus.values():
+			# 		push_error("Value isn't a valid SUCCESS_STATUS.")
+			# 		return false
+			# 	self.val_ext = SUCCESS_STATUS_TXT[self.val]
 			_:
 				push_error("Invalid attribute type.")
 				return false
@@ -114,56 +132,85 @@ class DME:
 
 
 # API
-func get_score() -> float:
-	var dme := lms_get_attr(Attributes.SCORE_SCALED)
+func get_score() -> int:
+	var dme := lms_get_attr(Attributes.SCORE)
 	if !dme:
-		return 0.0
+		return 0
 	return dme.get_value()
 
 
-func set_score(value: float) -> void:
-	"""Value must be between [-1,1]."""
-	lms_set_attr(Attributes.SCORE_SCALED, value)
+func set_score(value: int) -> void:
+	"""Value must be between [0, 100]."""
+	lms_set_attr(Attributes.SCORE_MAX, 100)
+	lms_set_attr(Attributes.SCORE_MIN, 0)
+	lms_set_attr(Attributes.SCORE, value)
 
 
-func get_session_time() -> float:
-	var dme := lms_get_attr(Attributes.SESSION_TIME)
-	if !dme:
-		return 0.0
-	return dme.get_value()
+#func get_session_time() -> String:
+	#_logv("Session time is WO")
+	#return "0"
+	#var dme := lms_get_attr(Attributes.SESSION_TIME)
+	#if !dme:
+		#return "0"
+	#return dme.get_value()
 
 
-func set_session_time(value: float) -> void:
-	"""Seconds."""
-	lms_set_attr(Attributes.SESSION_TIME, value)
+# func set_session_time(value: float) -> void:
+# 	"""Seconds."""
+# 	lms_set_attr(Attributes.SESSION_TIME, value)
 
 
-func get_completion_status() -> CompletionStatus:
-	var dme := lms_get_attr(Attributes.COMPLETION_STATUS)
-	if !dme:
-		return CompletionStatus.UNKNOWN
-	return dme.get_value()
+# func get_success_status() -> SuccessStatus:
+# 	var dme := lms_get_attr(Attributes.SUCCESS_STATUS)
+# 	if !dme:
+# 		return SuccessStatus.UNKNOWN
+# 	return dme.get_value()
 
 
-func set_completion_status(value: CompletionStatus):
-	lms_set_attr(Attributes.COMPLETION_STATUS, value)
+# func set_sucess_status(value: SuccessStatus):
+# 	lms_set_attr(Attributes.SUCCESS_STATUS, value)
 
 
-func get_success_status() -> SuccessStatus:
-	var dme := lms_get_attr(Attributes.SUCCESS_STATUS)
-	if !dme:
-		return SuccessStatus.UNKNOWN
-	return dme.get_value()
+func lesson_completed() -> void:
+	_logv("> lesson_completed")
+	lms_set_attr(Attributes.LESSON_STATUS, LessonStatus.COMPLETED)
+	js_scorm.reachedEnd = true
 
 
-func set_sucess_status(value: SuccessStatus):
-	lms_set_attr(Attributes.SUCCESS_STATUS, value)
+func lesson_incomplete() -> void:
+	_logv("> lesson_incomplete")
+	lms_set_attr(Attributes.LESSON_STATUS, LessonStatus.INCOMPLETE)
+	js_scorm.reachedEnd = false
+
+
+func lesson_passed() -> void:
+	_logv("> lesson_passed")
+	lms_set_attr(Attributes.LESSON_STATUS, LessonStatus.PASSED)
+	js_scorm.reachedEnd = true
+
+
+func lesson_failed() -> void:
+	_logv("> lesson_failed")
+	lms_set_attr(Attributes.LESSON_STATUS, LessonStatus.FAILED)
+	js_scorm.reachedEnd = true
 
 
 ## Direct access
+func lms_get_lesson_status() -> LessonStatus:
+	var dme := lms_get_attr(Attributes.LESSON_STATUS)
+	if !dme:
+		return LessonStatus.NOT_ATTEMPTED
+	return dme.get_value()
+
+
+func lms_set_lesson_status(value: LessonStatus):
+	lms_set_attr(Attributes.LESSON_STATUS, value)
+
+
 func lms_get_attr(attribute: Attributes) -> DME:
 	_logv("> lms_get_attr '%s'" % [ATTRIBUTES_TXT[attribute]])
-	var lms_value = JavaScriptBridge.eval("ScormProcessGetValue('%s')" % [ATTRIBUTES_TXT[attribute]])
+	#var lms_value = JavaScriptBridge.eval("ScormProcessGetValue('%s')" % [ATTRIBUTES_TXT[attribute]])
+	var lms_value = js_scorm.getValue(ATTRIBUTES_TXT[attribute])
 	_logv("> lms_value '%s'" % [lms_value])
 	if !lms_value:
 		_logv("> Value no present in LMS.")
@@ -185,7 +232,9 @@ func lms_get_attr(attribute: Attributes) -> DME:
 func lms_set_attr(attribute: Attributes, value: Variant) -> void:
 	var dme: DME = _dme_get_or_create(attribute, value)
 	_logv("> lms_set_attr '%s' '%s'" % [ATTRIBUTES_TXT[attribute], dme.get_value_ext()])
-	JavaScriptBridge.eval("ScormProcessSetValue('%s', '%s')" % [ATTRIBUTES_TXT[attribute], dme.get_value_ext()])
+	#JavaScriptBridge.eval("ScormProcessSetValue('%s', '%s')" % [ATTRIBUTES_TXT[attribute], dme.get_value_ext()])
+	js_scorm.setValue(ATTRIBUTES_TXT[attribute], dme.get_value_ext())
+	lms_commit()
 	dme = lms_get_attr(attribute)
 	if !dme:
 		return
@@ -195,7 +244,8 @@ func lms_set_attr(attribute: Attributes, value: Variant) -> void:
 func lms_get_attr_raw(attribute_txt: String) -> String:
 	if !attribute_txt: return ""
 	_logv("> lms_get_attr_raw '%s'" % [attribute_txt])
-	return str(JavaScriptBridge.eval("ScormProcessGetValue('%s')" % [attribute_txt]))
+	#return str(JavaScriptBridge.eval("ScormProcessGetValue('%s')" % [attribute_txt]))
+	return js_scorm.getValue(attribute_txt)
 
 
 func lms_set_attr_raw(attribute_txt: String, value_txt: String) -> void:
@@ -205,7 +255,13 @@ func lms_set_attr_raw(attribute_txt: String, value_txt: String) -> void:
 	"""
 	if !attribute_txt: return
 	_logv("> lms_set_attr_raw '%s' '%s'" % [attribute_txt, value_txt])
-	JavaScriptBridge.eval("ScormProcessSetValue('%s', '%s')" % [attribute_txt, value_txt])
+	#JavaScriptBridge.eval("ScormProcessSetValue('%s', '%s')" % [attribute_txt, value_txt])
+	js_scorm.setValue(attribute_txt, value_txt)
+
+
+func lms_commit() -> void:
+	#JavaScriptBridge.eval("ScormProcessCommit()")
+	js_scorm.commit()
 
 
 # Misc
@@ -235,26 +291,38 @@ func _dme_get_or_create(attribute: Attributes, value: Variant) -> DME:
 
 func _value_ext2type(attribute: Attributes, value: Variant) -> Variant:
 	match(attribute):
-		Scorm.Attributes.SCORE_SCALED,\
-		Scorm.Attributes.SESSION_TIME:
+		Scorm.Attributes.SCORE,\
+		Scorm.Attributes.SCORE_MAX,\
+		Scorm.Attributes.SCORE_MIN:
+		#Scorm.Attributes.SESSION_TIME:
 			return value
-		Scorm.Attributes.COMPLETION_STATUS:
-			return TXT2COMPLETION_STATUS[value]
-		Scorm.Attributes.SUCCESS_STATUS:
-			return TXT2SUCCESS_STATUS[value]
+		Scorm.Attributes.LESSON_STATUS:
+			return TXT2LESSON_STATUS[value]
+		# Scorm.Attributes.SUCCESS_STATUS:
+		# 	return TXT2SUCCESS_STATUS[value]
 		_:
 			return null
 
 
-func _init():
-	for k in COMPLETION_STATUS_TXT:
-		var v = COMPLETION_STATUS_TXT[k]
-		TXT2COMPLETION_STATUS[v] = k
-	for k in SUCCESS_STATUS_TXT:
-		var v = SUCCESS_STATUS_TXT[k]
-		TXT2SUCCESS_STATUS[v] = k
+var js_scorm
+class MockScorm:
+	var reachedEnd: bool
+	func get_value(key: String) -> Variant:
+		return ""
+	func set_value(key: String, val: Variant) -> void:
+		pass
+	func commit() -> void:
+		pass
 
-# To extend the functionality you problably will:
-# - Adjust the enums/consts
-# - Create a TXT2<enum>, adjust the _init(), adjust _value_ext2type()
-# - Adjust DME._check()
+
+func _init():
+	js_scorm = JavaScriptBridge.get_interface("scorm")
+	if !js_scorm:
+		js_scorm = MockScorm.new()
+
+	for k in LESSON_STATUS_TXT:
+		var v = LESSON_STATUS_TXT[k]
+		TXT2LESSON_STATUS[v] = k
+	# for k in SUCCESS_STATUS_TXT:
+	# 	var v = SUCCESS_STATUS_TXT[k]
+	# 	TXT2SUCCESS_STATUS[v] = k

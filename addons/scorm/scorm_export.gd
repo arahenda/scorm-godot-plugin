@@ -1,7 +1,7 @@
 extends EditorExportPlugin
 
 # Generates a .zip archive from the exported files. Ignore existent .zip in the folder.
-@export var auto_zip := true # Please, reset the Edito after changing this value.
+@export var auto_zip := true # Please, reset the Editor after changing this value.
 @export var default_zip_filename := "scorm.zip"
 
 const MANIFEST_FILENAME := "imsmanifest.xml"
@@ -25,12 +25,21 @@ func _export_begin(features: PackedStringArray, is_debug: bool, path: String, fl
 func _export_end() -> void:
 	print(_pmsg("Initializing..."))
 	assert(final_file_path.contains(".html"), "Error! The 'Scorm' plugin expects an html output file. Are you exporting for the Web?")
-	# Copy some essential files to the export directory.
-	DirAccess.copy_absolute("res://addons/scorm/%s" % SCORMJS_FILENAME, "%s/%s" % [export_dir_path, SCORMJS_FILENAME])
-	DirAccess.copy_absolute("res://addons/scorm/assets/%s" % MANIFEST_FILENAME, "%s/%s" % [export_dir_path, MANIFEST_FILENAME])
+	_copy_assets()
 	_patch_final_file()
 	_create_manifest_file()
 	if(auto_zip): _write_zip_file()
+
+
+func _copy_assets() -> void:
+	"""Copy some essential files to the export directory."""
+	DirAccess.copy_absolute("res://addons/scorm/%s" % SCORMJS_FILENAME, "%s/%s" % [export_dir_path, SCORMJS_FILENAME])
+	DirAccess.copy_absolute("res://addons/scorm/assets/%s" % MANIFEST_FILENAME, "%s/%s" % [export_dir_path, MANIFEST_FILENAME])
+	var files := DirAccess.open("res://addons/scorm/assets")
+	for file_name in files.get_files():
+		if file_name.contains(".xsd"):
+			DirAccess.copy_absolute("res://addons/scorm/assets/%s" % file_name, "%s/%s" % [export_dir_path, file_name])
+	print(_pmsg("Scorm assets copied to export dir."))
 
 
 func _create_manifest_file() -> void:

@@ -8,7 +8,7 @@ extends Control
 @onready var session_time_value := $Container/SessionTimeLine/SessionTimeValue
 @onready var success_status_input := $Container/SuccessStatusLine/SuccessStatusOptionButton
 @onready var success_status_value := $Container/SuccessStatusLine/SuccessStatusValue
-@onready var completion_status_value := $Container/CompletionStatusLine/CompletionStatusValue
+@onready var lesson_status_value := $Container/CompletionStatusLine/CompletionStatusValue
 @onready var custom_prop_attr := $Container/CustomPropLine/LeftContainer/HBoxContainer/CustomPropAttr
 @onready var custom_prop_input := $Container/CustomPropLine/LeftContainer/HBoxContainer2/CustomPropInput
 @onready var custom_prop_value := $Container/CustomPropLine/CustomPropValue
@@ -26,14 +26,14 @@ func _on_scorm_attribute_updated(attribute: Scorm.Attributes, value: Variant) ->
 func _update_labels(attribute: Scorm.Attributes, value: Variant) -> void:
 	print("Updating from event ('%s' '%s')..." % [Scorm.ATTRIBUTES_TXT[attribute], Scorm.dme_lookup[attribute].get_value_ext()])
 	match(attribute):
-		Scorm.Attributes.SCORE_SCALED:
+		Scorm.Attributes.SCORE:
 			score_value.text = str(value)
-		Scorm.Attributes.SESSION_TIME:
-			session_time_value.text = str(value)
-		Scorm.Attributes.COMPLETION_STATUS:
-			completion_status_value.text = Scorm.COMPLETION_STATUS_TXT[value]
-		Scorm.Attributes.SUCCESS_STATUS:
-			success_status_value.text = Scorm.SUCCESS_STATUS_TXT[value]
+		#Scorm.Attributes.SESSION_TIME:
+			#session_time_value.text = str(value)
+		Scorm.Attributes.LESSON_STATUS:
+			lesson_status_value.text = Scorm.LESSON_STATUS_TXT[value]
+		#Scorm.Attributes.SUCCESS_STATUS:
+			#success_status_value.text = Scorm.SUCCESS_STATUS_TXT[value]
 	_update_custom_prop_label()
 
 
@@ -48,7 +48,7 @@ func _on_auto_refresh_toggle_toggled(value: bool) -> void:
 
 func _on_score_submit_button_pressed() -> void:
 	# NOTE: The 'Score' node limits the accepted values between 0 and 100.
-	Scorm.set_score(score_input.value/100)
+	Scorm.set_score(score_input.value)
 
 
 func _on_score_refresh_button_pressed() -> void:
@@ -56,28 +56,32 @@ func _on_score_refresh_button_pressed() -> void:
 
 
 func _on_session_time_submit_button_pressed():
-	Scorm.set_session_time(float(session_time_input.text))
+	print("Session time: %s" % session_time_input.text)
+	print("Set session time disabled for now.")
+	# Scorm.set_session_time(float(session_time_input.text))
 
 
 func _on_session_time_refresh_button_pressed():
-	session_time_value.text = str(Scorm.get_session_time())
+	print("Get session not available. Attribute is WO.")
+	#session_time_value.text = str(Scorm.get_session_time())
 
 
 func _on_pass_toggle_toggled(toggled_on: bool) -> void:
 	if(toggled_on):
-		Scorm.set_completion_status(Scorm.CompletionStatus.COMPLETED)
+		Scorm.lms_set_lesson_status(Scorm.LessonStatus.COMPLETED)
 	else:
-		Scorm.set_completion_status(Scorm.CompletionStatus.INCOMPLETE)
+		Scorm.lms_set_lesson_status(Scorm.LessonStatus.INCOMPLETE)
 
 
 func _on_status_refresh_button_pressed() -> void:
-	completion_status_value.text = Scorm.COMPLETION_STATUS_TXT[Scorm.get_completion_status()]
+	lesson_status_value.text = Scorm.LESSON_STATUS_TXT[Scorm.lms_get_lesson_status()]
 
 
 func _on_success_status_submit_button_pressed():
 	# NOTE: The order of the options must be the same of the Scorm's SucessStatus enum
-	var val: Scorm.SuccessStatus = success_status_input.get_item_index(success_status_input.get_selected_id())
-	Scorm.set_sucess_status(val)
+	print("success_status isnt supported by SCORM 1.2.")
+	# var val: Scorm.SuccessStatus = success_status_input.get_item_index(success_status_input.get_selected_id())
+	# Scorm.set_sucess_status(val)
 
 
 func _on_success_status_refresh_button_pressed():
@@ -91,3 +95,19 @@ func _on_custom_prop_submit_button_pressed() -> void:
 
 func _on_custom_prop_refresh_button_pressed() -> void:
 	_update_custom_prop_label()
+
+
+func _on_button_pressed():
+	Scorm.lesson_completed()
+
+
+func _on_incomplete_pressed():
+	Scorm.lesson_incomplete()
+
+
+func _on_passed_pressed():
+	Scorm.lesson_passed()
+
+
+func _on_failed_pressed():
+	Scorm.lesson_failed()

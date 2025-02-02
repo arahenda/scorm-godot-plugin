@@ -75,6 +75,7 @@ layout_mode = 2
 text = "Refresh"
 
 [node name="SessionTimeLine" type="HBoxContainer" parent="Container"]
+visible = false
 layout_mode = 2
 
 [node name="Label" type="Label" parent="Container/SessionTimeLine"]
@@ -91,6 +92,7 @@ caret_blink = true
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
+disabled = true
 text = "Submit
 "
 
@@ -115,11 +117,12 @@ layout_mode = 2
 text = "Refresh"
 
 [node name="CompletionStatusLine" type="HBoxContainer" parent="Container"]
+visible = false
 layout_mode = 2
 
 [node name="Label" type="Label" parent="Container/CompletionStatusLine"]
 layout_mode = 2
-text = "Completion Status:"
+text = "Lession Status:"
 vertical_alignment = 1
 
 [node name="PassToggle" type="CheckButton" parent="Container/CompletionStatusLine"]
@@ -145,6 +148,7 @@ layout_mode = 2
 text = "Refresh"
 
 [node name="SuccessStatusLine" type="HBoxContainer" parent="Container"]
+visible = false
 layout_mode = 2
 
 [node name="Label" type="Label" parent="Container/SuccessStatusLine"]
@@ -165,6 +169,7 @@ popup/item_2/id = 2
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
+disabled = true
 text = "Submit
 "
 
@@ -185,6 +190,7 @@ layout_mode = 2
 
 [node name="SuccessStatusRefreshButton" type="Button" parent="Container/SuccessStatusLine"]
 layout_mode = 2
+disabled = true
 text = "Refresh"
 
 [node name="CustomPropLine" type="HBoxContainer" parent="Container"]
@@ -244,11 +250,45 @@ text = "Current:"
 [node name="CustomPropValue" type="Label" parent="Container/CustomPropLine"]
 custom_minimum_size = Vector2(100, 0)
 layout_mode = 2
+autowrap_mode = 2
 
 [node name="CustomPropRefreshButton" type="Button" parent="Container/CustomPropLine"]
 layout_mode = 2
 size_flags_vertical = 4
 text = "Refresh"
+
+[node name="LessonStatus" type="HBoxContainer" parent="Container"]
+layout_mode = 2
+
+[node name="LeftContainer" type="VBoxContainer" parent="Container/LessonStatus"]
+layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="Container/LessonStatus/LeftContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Container/LessonStatus/LeftContainer/HBoxContainer"]
+layout_mode = 2
+text = "Lesson Status:"
+
+[node name="Completed" type="Button" parent="Container/LessonStatus/LeftContainer/HBoxContainer"]
+layout_mode = 2
+text = "Completed"
+
+[node name="Incomplete" type="Button" parent="Container/LessonStatus/LeftContainer/HBoxContainer"]
+layout_mode = 2
+text = "Incomplete"
+
+[node name="Passed" type="Button" parent="Container/LessonStatus/LeftContainer/HBoxContainer"]
+layout_mode = 2
+text = "Passed"
+
+[node name="Failed" type="Button" parent="Container/LessonStatus/LeftContainer/HBoxContainer"]
+layout_mode = 2
+text = "Failed"
+
+[node name="MarginContainer" type="MarginContainer" parent="Container/LessonStatus"]
+layout_mode = 2
+size_flags_horizontal = 3
 
 [connection signal="toggled" from="AutoRefreshToggle" to="." method="_on_auto_refresh_toggle_toggled"]
 [connection signal="pressed" from="Container/ScoreLine/ScoreSubmitButton" to="." method="_on_score_submit_button_pressed"]
@@ -261,3 +301,7 @@ text = "Refresh"
 [connection signal="pressed" from="Container/SuccessStatusLine/SuccessStatusRefreshButton" to="." method="_on_success_status_refresh_button_pressed"]
 [connection signal="pressed" from="Container/CustomPropLine/LeftContainer/HBoxContainer2/ButtonContainer/CustomPropSubmitButton" to="." method="_on_custom_prop_submit_button_pressed"]
 [connection signal="pressed" from="Container/CustomPropLine/CustomPropRefreshButton" to="." method="_on_custom_prop_refresh_button_pressed"]
+[connection signal="pressed" from="Container/LessonStatus/LeftContainer/HBoxContainer/Completed" to="." method="_on_button_pressed"]
+[connection signal="pressed" from="Container/LessonStatus/LeftContainer/HBoxContainer/Incomplete" to="." method="_on_incomplete_pressed"]
+[connection signal="pressed" from="Container/LessonStatus/LeftContainer/HBoxContainer/Passed" to="." method="_on_passed_pressed"]
+[connection signal="pressed" from="Container/LessonStatus/LeftContainer/HBoxContainer/Failed" to="." method="_on_failed_pressed"]

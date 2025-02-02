@@ -1,20 +1,17 @@
-<manifest xmlns="http://www.imsglobal.org/xsd/imscp_v1p1"
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest identifier="SingleCourse" version="1"
+	xmlns="http://www.imsproject.org/xsd/imscp_rootv1p1p2"
+	xmlns:adlcp="http://www.adlnet.org/xsd/adlcp_rootv1p2"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:adlcp="http://www.adlnet.org/xsd/adlcp_v1p3"
-	xmlns:adlseq="http://www.adlnet.org/xsd/adlseq_v1p3"
-	xmlns:adlnav="http://www.adlnet.org/xsd/adlnav_v1p3"
-	xmlns:imsss="http://www.imsglobal.org/xsd/imsss" identifier="godot_scorm" version="3"
-	xsi:schemaLocation="http://www.imsglobal.org/xsd/imscp_v1p1 imscp_v1p1.xsd
-						http://www.adlnet.org/xsd/adlcp_v1p3 adlcp_v1p3.xsd
-						http://www.adlnet.org/xsd/adlseq_v1p3 adlseq_v1p3.xsd
-						http://www.adlnet.org/xsd/adlnav_v1p3 adlnav_v1p3.xsd
-						http://www.imsglobal.org/xsd/imsss imsss_v1p0.xsd">
+	xsi:schemaLocation="http://www.imsproject.org/xsd/imscp_rootv1p1p2 imscp_rootv1p1p2.xsd
+						http://www.imsglobal.org/xsd/imsmd_rootv1p2p1 imsmd_rootv1p2p1.xsd
+						http://www.adlnet.org/xsd/adlcp_rootv1p2 adlcp_rootv1p2.xsd">
 	<metadata>
 		<schema>ADL SCORM</schema>
-		<schemaversion>2004 4th Edition</schemaversion>
+		<schemaversion>1.2</schemaversion>
 	</metadata>
-	<organizations default="godot_scorm_plugin">
-		<organization identifier="godot_scorm_plugin" adlseq:objectivesGlobalToSystem="false">
+	<organizations default="godot_project">
+		<organization identifier="godot_project">
 			<title>Activity</title>
 			<item identifier="item_1" identifierref="resource_1">
 				<title>Activity</title>
@@ -22,7 +19,7 @@
 		</organization>
 	</organizations>
 	<resources>
-		<resource identifier="resource_1" type="webcontent" adlcp:scormType="sco" href="$FINAL_FILE">
+		<resource identifier="resource_1" type="webcontent" adlcp:scormtype="sco" href="$FINAL_FILE">
 			$FILE_LINKS
 		</resource>
 	</resources>
