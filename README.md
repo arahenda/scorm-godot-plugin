@@ -58,7 +58,7 @@ The learner’s current location in the SCO. A free text field for the SCO to re
 Provides space to store and retrieve data between learner sessions.
 
 > [!NOTE]
-> Attributes marked **persistent** above retain it's value between runs in the same attempt (in case the learner chose to
+> Attributes marked as **Persistent** above retain its values between runs in the same attempt (in case the learner chose to
 continue a previous run).
 
 More info:
