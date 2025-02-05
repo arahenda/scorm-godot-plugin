@@ -13,7 +13,7 @@ enum Attributes {
 	SCORE_MIN, # int 100
 	LESSON_STATUS,	# enum LessonStatus (1.2 name, in 2004 it's 'completion_status')
 	#SESSION_TIME,	# Write only, managed at scorm.js
-	# SUCCESS_STATUS,	# enum SuccessStatus (scorm 2004)
+	#SUCCESS_STATUS,	# enum SuccessStatus (scorm 2004)
 }
 
 # See SCORM 1.2 reference: https://scorm.com/scorm-explained/technical-scorm/run-time/run-time-reference/#section-2
@@ -91,7 +91,6 @@ class DME:
 
 	func set_value(nval) -> void:
 		_set_safe(nval)
-		#self.val = nval
 
 	func _set_safe(val: Variant) -> Variant:
 		Scorm._logv("> dme_set_safe() '%s' '%s'" % [attr, val])
@@ -101,32 +100,19 @@ class DME:
 			Scorm.Attributes.SCORE_MIN:
 				val = int(val)
 				if 0 > val or 100 < val:
-					push_error("Score needs to be in [0,100] range.")
+					push_error("Score needs to be in [0,100] range. Received '%s'." % [val])
 					return false
 				self.val_ext = val
 				self.val = val
-				#self.val_ext = self.val
-			#Scorm.Attributes.SESSION_TIME:
-				#if 0 > val:
-					#push_error("Session time must be greater than 0.")
-					#return false
-				## self.val = float(val)
-				#self.val_ext = self.val
 			Scorm.Attributes.LESSON_STATUS:
-				Scorm._logv("%s" % Scorm.LessonStatus.values())
+				Scorm._logv("%s" % [Scorm.LessonStatus.values()])
 				if not val in Scorm.LessonStatus.values():
-					push_error("Value isn't a valid LESSON_STATUS.")
+					push_error("LessonStatus '%s' isn't valid." % [val])
 					return false
 				self.val_ext = LESSON_STATUS_TXT[val]
 				self.val = val
-				#self.val_ext = LESSON_STATUS_TXT[self.val]
-			# Scorm.Attributes.SUCCESS_STATUS:
-			# 	if not self.val in Scorm.SuccessStatus.values():
-			# 		push_error("Value isn't a valid SUCCESS_STATUS.")
-			# 		return false
-			# 	self.val_ext = SUCCESS_STATUS_TXT[self.val]
 			_:
-				push_error("Invalid attribute type.")
+				push_error("Error! Not possible to process attribute '%s'." % [self.attr])
 				return false
 		return true
 
@@ -146,70 +132,25 @@ func set_score(value: int) -> void:
 	lms_set_attr(Attributes.SCORE, value)
 
 
-#func get_session_time() -> String:
-	#_logv("Session time is WO")
-	#return "0"
-	#var dme := lms_get_attr(Attributes.SESSION_TIME)
-	#if !dme:
-		#return "0"
-	#return dme.get_value()
-
-
-# func set_session_time(value: float) -> void:
-# 	"""Seconds."""
-# 	lms_set_attr(Attributes.SESSION_TIME, value)
-
-
-# func get_success_status() -> SuccessStatus:
-# 	var dme := lms_get_attr(Attributes.SUCCESS_STATUS)
-# 	if !dme:
-# 		return SuccessStatus.UNKNOWN
-# 	return dme.get_value()
-
-
-# func set_sucess_status(value: SuccessStatus):
-# 	lms_set_attr(Attributes.SUCCESS_STATUS, value)
-
-
-func lesson_completed() -> void:
+func set_lesson_status(status: LessonStatus) -> void:
 	_logv("> lesson_completed")
-	lms_set_attr(Attributes.LESSON_STATUS, LessonStatus.COMPLETED)
-	js_scorm.reachedEnd = true
+	lms_set_attr(Attributes.LESSON_STATUS, status)
+	if status == LessonStatus.INCOMPLETE:
+		js_scorm.reachedEnd = false
+	else:
+		js_scorm.reachedEnd = true
 
 
-func lesson_incomplete() -> void:
-	_logv("> lesson_incomplete")
-	lms_set_attr(Attributes.LESSON_STATUS, LessonStatus.INCOMPLETE)
-	js_scorm.reachedEnd = false
-
-
-func lesson_passed() -> void:
-	_logv("> lesson_passed")
-	lms_set_attr(Attributes.LESSON_STATUS, LessonStatus.PASSED)
-	js_scorm.reachedEnd = true
-
-
-func lesson_failed() -> void:
-	_logv("> lesson_failed")
-	lms_set_attr(Attributes.LESSON_STATUS, LessonStatus.FAILED)
-	js_scorm.reachedEnd = true
-
-
-## Direct access
-func lms_get_lesson_status() -> LessonStatus:
+func get_lesson_status() -> LessonStatus:
 	var dme := lms_get_attr(Attributes.LESSON_STATUS)
 	if !dme:
 		return LessonStatus.NOT_ATTEMPTED
 	return dme.get_value()
 
 
-func lms_set_lesson_status(value: LessonStatus):
-	lms_set_attr(Attributes.LESSON_STATUS, value)
-
-
+## Direct access
 func lms_get_attr(attribute: Attributes) -> DME:
 	_logv("> lms_get_attr '%s'" % [ATTRIBUTES_TXT[attribute]])
-	#var lms_value = JavaScriptBridge.eval("ScormProcessGetValue('%s')" % [ATTRIBUTES_TXT[attribute]])
 	var lms_value = js_scorm.getValue(ATTRIBUTES_TXT[attribute])
 	_logv("> lms_value '%s'" % [lms_value])
 	if !lms_value:
@@ -232,7 +173,6 @@ func lms_get_attr(attribute: Attributes) -> DME:
 func lms_set_attr(attribute: Attributes, value: Variant) -> void:
 	var dme: DME = _dme_get_or_create(attribute, value)
 	_logv("> lms_set_attr '%s' '%s'" % [ATTRIBUTES_TXT[attribute], dme.get_value_ext()])
-	#JavaScriptBridge.eval("ScormProcessSetValue('%s', '%s')" % [ATTRIBUTES_TXT[attribute], dme.get_value_ext()])
 	js_scorm.setValue(ATTRIBUTES_TXT[attribute], dme.get_value_ext())
 	lms_commit()
 	dme = lms_get_attr(attribute)
@@ -244,7 +184,6 @@ func lms_set_attr(attribute: Attributes, value: Variant) -> void:
 func lms_get_attr_raw(attribute_txt: String) -> String:
 	if !attribute_txt: return ""
 	_logv("> lms_get_attr_raw '%s'" % [attribute_txt])
-	#return str(JavaScriptBridge.eval("ScormProcessGetValue('%s')" % [attribute_txt]))
 	return js_scorm.getValue(attribute_txt)
 
 
@@ -255,18 +194,16 @@ func lms_set_attr_raw(attribute_txt: String, value_txt: String) -> void:
 	"""
 	if !attribute_txt: return
 	_logv("> lms_set_attr_raw '%s' '%s'" % [attribute_txt, value_txt])
-	#JavaScriptBridge.eval("ScormProcessSetValue('%s', '%s')" % [attribute_txt, value_txt])
 	js_scorm.setValue(attribute_txt, value_txt)
 
 
 func lms_commit() -> void:
-	#JavaScriptBridge.eval("ScormProcessCommit()")
 	js_scorm.commit()
 
 
 # Misc
 func _pmsg(msg: String) -> String:
-	return "Plugin(Scorm): %s" % msg
+	return "Plugin(Scorm): %s" % [msg]
 
 func _log(msg: String) -> void:
 	print(_pmsg("%s" % [msg]))
@@ -294,25 +231,28 @@ func _value_ext2type(attribute: Attributes, value: Variant) -> Variant:
 		Scorm.Attributes.SCORE,\
 		Scorm.Attributes.SCORE_MAX,\
 		Scorm.Attributes.SCORE_MIN:
-		#Scorm.Attributes.SESSION_TIME:
-			return value
+			return int(value)
 		Scorm.Attributes.LESSON_STATUS:
 			return TXT2LESSON_STATUS[value]
-		# Scorm.Attributes.SUCCESS_STATUS:
-		# 	return TXT2SUCCESS_STATUS[value]
 		_:
+			push_error("Error! Attribute '%s' with value '%s' not mapped." % [attribute, value])
 			return null
 
 
 var js_scorm
 class MockScorm:
+	const _mock_msg := "Mocked object"
+
 	var reachedEnd: bool
-	func get_value(key: String) -> Variant:
+	func getValue(key: String) -> Variant:
+		print(_mock_msg)
 		return ""
-	func set_value(key: String, val: Variant) -> void:
-		pass
+	func setValue(key: String, val: Variant) -> void:
+		print(_mock_msg)
+		return
 	func commit() -> void:
-		pass
+		print(_mock_msg)
+		return
 
 
 func _init():
@@ -323,6 +263,3 @@ func _init():
 	for k in LESSON_STATUS_TXT:
 		var v = LESSON_STATUS_TXT[k]
 		TXT2LESSON_STATUS[v] = k
-	# for k in SUCCESS_STATUS_TXT:
-	# 	var v = SUCCESS_STATUS_TXT[k]
-	# 	TXT2SUCCESS_STATUS[v] = k

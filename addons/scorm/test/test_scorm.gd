@@ -57,7 +57,7 @@ func _on_score_refresh_button_pressed() -> void:
 
 func _on_session_time_submit_button_pressed():
 	print("Session time: %s" % session_time_input.text)
-	print("Set session time disabled for now.")
+	print("Session time is managed by the Scorm plugin automatically.")
 	# Scorm.set_session_time(float(session_time_input.text))
 
 
@@ -68,13 +68,13 @@ func _on_session_time_refresh_button_pressed():
 
 func _on_pass_toggle_toggled(toggled_on: bool) -> void:
 	if(toggled_on):
-		Scorm.lms_set_lesson_status(Scorm.LessonStatus.COMPLETED)
+		Scorm.set_lesson_status(Scorm.LessonStatus.COMPLETED)
 	else:
-		Scorm.lms_set_lesson_status(Scorm.LessonStatus.INCOMPLETE)
+		Scorm.set_lesson_status(Scorm.LessonStatus.INCOMPLETE)
 
 
 func _on_status_refresh_button_pressed() -> void:
-	lesson_status_value.text = Scorm.LESSON_STATUS_TXT[Scorm.lms_get_lesson_status()]
+	lesson_status_value.text = Scorm.LESSON_STATUS_TXT[Scorm.get_lesson_status()]
 
 
 func _on_success_status_submit_button_pressed():
@@ -98,16 +98,16 @@ func _on_custom_prop_refresh_button_pressed() -> void:
 
 
 func _on_button_pressed():
-	Scorm.lesson_completed()
+	Scorm.set_lesson_status(Scorm.LessonStatus.COMPLETED)
 
 
 func _on_incomplete_pressed():
-	Scorm.lesson_incomplete()
+	Scorm.set_lesson_status(Scorm.LessonStatus.INCOMPLETE)
 
 
 func _on_passed_pressed():
-	Scorm.lesson_passed()
+	Scorm.set_lesson_status(Scorm.LessonStatus.PASSED)
 
 
 func _on_failed_pressed():
-	Scorm.lesson_failed()
+	Scorm.set_lesson_status(Scorm.LessonStatus.FAILED)
