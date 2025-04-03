@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://byeu5ws03cs0"]
 
-[ext_resource type="Script" path="res://addons/scorm/test/test_scorm.gd" id="1_w1fyk"]
+[ext_resource type="Script" uid="uid://bom1i5ox70ed2" path="res://addons/scorm/test/test_scorm.gd" id="1_w1fyk"]
 
 [node name="TestScorm" type="Control"]
 layout_mode = 3
@@ -161,6 +161,7 @@ vertical_alignment = 1
 layout_mode = 2
 item_count = 3
 popup/item_0/text = "PASSED"
+popup/item_0/id = 0
 popup/item_1/text = "FAILED"
 popup/item_1/id = 1
 popup/item_2/text = "UNKNOWN"
