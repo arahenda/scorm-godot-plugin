@@ -1,6 +1,6 @@
 MIT License
 
-Copyright (c) 2024-present EsdrasCaleb, edassis and contributors
+Copyright (c) 2024-present Godot SCORM plugin contributors (see AUTHORS.md).
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
