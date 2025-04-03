@@ -13,10 +13,8 @@ Follows the _SCORM 1.2_ specification.
 - Export your project for Web.
 - The plugin will detect the export process and do his thing.
 
-### Versions
-
-- Godot v4.3 -> Plugin v2.2
-- Godot v4.4 -> Plugin v2.3+
+> [!NOTE]
+> Expected to work from Godot v4.2 onwards.
 
 ## Usage
 
