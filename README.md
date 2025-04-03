@@ -13,6 +13,11 @@ Follows the _SCORM 1.2_ specification.
 - Export your project for Web.
 - The plugin will detect the export process and do his thing.
 
+### Versions
+
+- Godot v4.3 -> Plugin v2.2
+- Godot v4.4 -> Plugin v2.3+
+
 ## Usage
 
 `ScormExport` has some configurable options:
@@ -23,17 +28,16 @@ Follows the _SCORM 1.2_ specification.
 > [!NOTE]
 > Take note that changing `ScormExport`'s exported values will require you to restart the engine for the changes to take effect.
 
-The plugin takes care of the init and finish process taking care of the SCORM quirks. The developer should:
+This plugin takes care of the SCORM's init and finish process, abstracting its quirks for you. The developer should:
 
 - Set a `score` for the current learner's attempt.
 - In case the student has reached the end of the exercise, call `set_lesson_status(LessonStatus.COMPLETED)` to signalize 
 it for the SCORM runtime. In case the lesson should be considered a test, `set_lesson_status(LessonStatus.PASSED)` can
 be used in case the learner surpassed the threshold for approval. Otherwise, `set_lesson_status(LessonStatus.FAILED)`
 should be called.
-- The first start of the lesson has `cmi.core.lesson_status` as `not attempted`, the plugin
-sets it to `incomplete` as suggested by the SCORM reference (see `doStart()`, `doUnload()` at `scorm.js`).
-This way, the current attempt progression is retained by the LMS if the user closes the browser
-or exits the SCORM lesson abruptly.
+- At the first lesson attempt start, `cmi.core.lesson_status` has the value `not attempted` (defined by the LMS), the plugin
+sets it to `incomplete` as soon as possible (as suggested by the SCORM reference, see `doStart()`, `doUnload()` at `scorm.js`).
+This way, the current attempt progression is retained by the LMS if the user closes the browser or exits the SCORM lesson abruptly.
 
 ### Scorm Data model
 
@@ -65,6 +69,11 @@ More info:
 
 - <https://scorm.com/scorm-explained/technical-scorm/run-time/>
 - <https://scorm.com/scorm-explained/technical-scorm/run-time/run-time-reference/#section-2>
+
+## Ideas of improvements
+
+- [ ] Migrate possible functionalities from `scorm.js` to `scorm.gd` for better DX and security.
+- [ ] Add some Save system to leverage SCORM persistent capabilities and offer it in a standardized way for developers.
 
 ## Contributing
 
