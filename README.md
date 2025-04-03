@@ -1,4 +1,4 @@
-# Godot SCORM plugin
+# Godot SCORM Plugin
 
 Offers a channel for communication with the SCORM API and packages the **Web exported** files into a ZIP archive.
 The communication can be made with the functions or the signals of the `Scorm` autoload node.
@@ -39,7 +39,7 @@ should be called.
 sets it to `incomplete` as soon as possible (as suggested by the SCORM reference, see `doStart()`, `doUnload()` at `scorm.js`).
 This way, the current attempt progression is retained by the LMS if the user closes the browser or exits the SCORM lesson abruptly.
 
-### Scorm Data model
+### Scorm Data Model
 
 #### `cmi.core.score.raw` - score (float RW Persistent*)
 
@@ -70,7 +70,7 @@ More info:
 - <https://scorm.com/scorm-explained/technical-scorm/run-time/>
 - <https://scorm.com/scorm-explained/technical-scorm/run-time/run-time-reference/#section-2>
 
-## Ideas of improvements
+## Ideas of Improvements
 
 - [ ] Migrate possible functionalities from `scorm.js` to `scorm.gd` for better DX and security.
 - [ ] Add some Save system to leverage SCORM persistent capabilities and offer it in a standardized way for developers.
