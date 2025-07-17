@@ -13,8 +13,7 @@ config_version=5
 config/name="Scorm plugin"
 config/tags=PackedStringArray("plugin")
 run/main_scene="res://addons/scorm/test/test_scorm.tscn"
-config/features=PackedStringArray("4.4", "GL Compatibility")
-config/icon="res://icon.svg"
+config/features=PackedStringArray("4.5", "GL Compatibility")
 
 [autoload]
 
